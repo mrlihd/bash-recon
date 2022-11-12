@@ -54,11 +54,6 @@ cd .tmp
     puredns bruteforce $path/custom-wordlist.txt -r $path/resolvers.txt $domain -q
 } > subs_pool.txt
 
-# echo [+] Fuzzing with Ffuf:
-# ffuf -s -w ../../temp-list.txt -u "http://FUZZ.$domain/" -o ffuf-subs.txt -H "User-Agent: Mozilla/5.0 (Windows; U; MSIE 9.0; WIndows NT 9.0; en-US))"
-# ffuf -s -w ./custom-wordlist.txt -u "http://FUZZ.$domain/" -o ffuf-subs.txt -H "User-Agent: Mozilla/5.0 (Windows; U; MSIE 9.0; WIndows NT 9.0; en-US))"
-# gron -m ffuf-subs.txt | grep host | grep -oE "\"[^\"]+\"" | cut -d"\"" -f2 >> subs_pool.txt
-
 sort -u subs_pool.txt -o subs_pool.txt
 # puredns resolve subs_pool.txt -w resolved-subdomains.txt -r $path/resolvers.txt -q
 shuffledns -list subs_pool.txt -r $path/resolvers.txt -silent -o resolved-subdomains.txt
@@ -66,17 +61,8 @@ shuffledns -list subs_pool.txt -r $path/resolvers.txt -silent -o resolved-subdom
 cat resolved-subdomains.txt |anew -q subs_pool.txt
 cat subs_pool.txt |anew -q ../all_subdomains.txt
 
-# if [ -e ../all_subdomains.txt ]
-# then
-# # echo $old
-#     comm -13 ../all_subdomains.txt resolved-subdomains.txt > new-domains.txt
-# else
-#     cp resolved-subdomains.txt new-domains.txt
-# fi
-
 cat resolved-subdomains.txt |httprobe | anew -q all_webs_tmp.txt
 httpx -l ../all_subdomains.txt -H $HEADER -p $UNCOMMON_PORTS_WEB -fhr -sc -threads 20 -retries 2 -timeout 20 -silent -td -title -o httpx.json -json
-# httpx -l ../all_subdomains.txt -H $HEADER -p 8080,8443 -fhr -sc -threads 20 -retries 2 -timeout 20 -silent -td -title -o httpx.json -json -silent
 cat httpx.json |gron -s |grep url |cut -d "\"" -f4 |anew -q all_webs_tmp.txt
 cat all_webs_tmp.txt |anew ../all_webs.txt > ../new_webs.txt
 
